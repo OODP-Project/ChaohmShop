@@ -1,462 +1,188 @@
 package app.main.ui;
 
+import app.main.ChaohmShop;
+import app.main.NotEnoughMoneyException;
+import app.main.food.Food;
+import app.main.food.FoodMixer;
 import app.main.food.ingredient.Chaohm;
 import app.main.food.ingredient.Oil;
 import app.main.food.ingredient.Salt;
 import app.main.food.ingredient.Sugar;
+import app.main.people.Customer;
+import app.main.people.Town;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.util.Arrays;
+import java.awt.event.ActionListener;
 import java.util.HashMap;
+import java.util.Stack;
 
-public class ChaohmGUI extends JFrame {
+public class ChaohmGUI extends ChaohmShop implements ActionListener {
 
-    private final String[] ingredientName = new String[]{"oil", "chaohm", "salt", "sugar"};
-    private final int[] ingredientCost = new int[]{new Oil().getPrice(), new Chaohm().getPrice(), new Salt().getPrice(), new Sugar().getPrice()};
-    private final HashMap<String, Integer> ingredientsAmount = new HashMap<>();
-    private final HashMap<String, JButton> minusButton = new HashMap<>();
-    private final HashMap<String, JButton> plusButton = new HashMap<>();
-    private JButton startButton;
-    private JTextArea shopMonitor;
-    private JLabel moneyLabel;
-    private JLabel costLabel;
-    private JLabel sellPriceLabel;
-    private JLabel sellAmountLabel;
-    private JLabel sumCostLabel;
+    private Timer timer;
+    private final ChaohmFrame frame;
+    private final JTextArea monitor;
+    private final JLabel moneyLabel;
+    private final JButton startButton;
+    private int good;
+    private int normal;
+    private int bad;
 
+    /**
+     * A constructor to be called for the program which initialize important things here
+     */
     public ChaohmGUI(){
-        // Initialize important details of the frame
-        setTitle("ChaohmShop");
-        ImageIcon icon = new ImageIcon("omelette.png");
-        setIconImage(icon.getImage());
-        setDefaultCloseOperation(EXIT_ON_CLOSE); // Exit when close window
-        setSize(800, 500);
-        setPreferredSize(getSize()); // Frame is the same size when pack
-        setLocationRelativeTo(null); // Display the frame at center of the screen
-        setBackground(Color.BLACK);
-        setLayout(null);
-        setResizable(false);
-        initComponents();
-        Arrays.stream(ingredientName).forEach((name) -> ingredientsAmount.put(name, 1));
-    }
-
-    public void initComponents(){
-        int h = getHeight()/5 -30;
-        Font font = new Font("DialogInput",  Font.BOLD, h/4);
-
-        for (int i = 0; i < 4; i++) {
-
-            JLabel label = new JLabel("$" + ingredientCost[i]);
-            label.setFont(font);
-            this.add(label);
-            label.setBounds(40+h, getHeight()*(i+1)/6 - h/2 - 25, 50, 30);
-
-            JLabel amount = new JLabel("1");
-            JButton down = new JButton("-");
-            JButton up = new JButton("+");
-
-            JPanel panel = new JPanel();
-            panel.add(down);
-            panel.add(amount);
-            panel.add(up);
-
-            up.setFont(font);
-            up.setBackground(Color.WHITE);
-            up.setAction(new IncreaseAmountAction(amount));
-
-            down.setFont(font);
-            down.setBackground(Color.WHITE);
-            down.setAction(new DecreaseAmountAction(amount));
-
-            amount.setFont(font);
-            amount.setName(ingredientName[i]);
-
-            this.add(panel);
-
-            panel.setBounds(120, getHeight()*(i+1)/ 6 - h / 2, h * 2, h - 10);
-
-            String key = ingredientName[i];
-            minusButton.put(key, down);
-            plusButton.put(key, up);
-        }
-
-        // start button designs
-        startButton = new JButton("Start");
-        this.add(startButton);
-        startButton.setBounds(getWidth()/2, getHeight() - 80, 200, 40);
-        startButton.setFont(font);
-        startButton.setBackground(Color.GREEN);
-
-        // Report panel designs
-        JPanel reportingPanel = new JPanel();
-        this.add(reportingPanel);
-        reportingPanel.setLayout(new BorderLayout());
-        reportingPanel.setBackground(Color.BLACK);
-        reportingPanel.setBounds(getWidth()/2 - 100, getHeight()/2, 400, 150);
-
-        JScrollPane scrollPane = new JScrollPane();
-        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.setViewportBorder(new EmptyBorder(0, 0, 0, 0));
-        reportingPanel.add(scrollPane, BorderLayout.CENTER);
-
-        shopMonitor = new JTextArea();
-        shopMonitor.setBackground(Color.BLACK);
-        shopMonitor.setForeground(Color.WHITE);
-        shopMonitor.setBorder(new EmptyBorder(20, 20, 20, 20));
-        shopMonitor.setFont(new Font(font.getName(), Font.BOLD, h/5));
-        shopMonitor.setEditable(false);
-        shopMonitor.setAutoscrolls(true);
-        scrollPane.setViewportView(shopMonitor);
-
-        // Money Panel
-        JPanel moneyPanel = new JPanel();
-        this.add(moneyPanel);
-        moneyPanel.setLayout(new GridLayout(1, 2));
-        moneyPanel.setBounds(50, getHeight() - 100, 350, 50);
-
-        JLabel moneyTitle = new JLabel("money : $");
-        moneyPanel.add(moneyTitle);
-        moneyTitle.setFont(font);
-
-        moneyLabel = new JLabel("1000");
-        moneyPanel.add(moneyLabel);
-        moneyLabel.setFont(font);
-
-        int baseCost = 0;
-        for (int cost : ingredientCost){
-            baseCost += cost;
-        }
-
-        // Cost panel
-        JPanel costPanel = new JPanel();
-        this.add(costPanel);
-        costPanel.setBackground(Color.WHITE);
-        costPanel.setBorder(new LineBorder(Color.BLACK));
-        costPanel.setLayout(new GridLayout(1, 2));
-        costPanel.setBounds(getWidth()/2 -100, getHeight()/10 - h/2 ,200, 30);
-
-        JLabel costTitle  = new JLabel("Cost : $");
-        costPanel.add(costTitle);
-        costTitle.setFont(font);
-
-        costLabel = new JLabel(String.valueOf(baseCost));
-        costPanel.add(costLabel);
-        costLabel.setFont(font);
-
-        // Sell amount panel
-        JPanel amountPanel = new JPanel();
-        this.add(amountPanel);
-        amountPanel.setBounds(getWidth()/2 -100, getHeight()*2/10 - h/2, 200, 60);
-        amountPanel.setBorder(new LineBorder(Color.BLACK));
-        amountPanel.setBackground(Color.WHITE);
-        amountPanel.setLayout(new GridLayout(2, 2));
-
-        JLabel amountTitle = new JLabel("Amount :");
-        amountPanel.add(amountTitle);
-        amountTitle.setFont(font);
-
-        sellAmountLabel = new JLabel("100");
-        amountPanel.add(sellAmountLabel);
-        sellAmountLabel.setFont(font);
-
-        JButton amountDown = new JButton("-");
-        amountPanel.add(amountDown);
-        amountDown.setFont(font);
-        amountDown.setBackground(Color.yellow);
-
-        JButton amountUp = new JButton("+");
-        amountPanel.add(amountUp);
-        amountUp.setFont(font);
-        amountUp.setBackground(Color.GREEN);
-
-        plusButton.put("sellAmount", amountUp);
-        minusButton.put("sellAmount", amountDown);
-
-        // Sell price here
-        JPanel sellPricePanel = new JPanel();
-        this.add(sellPricePanel);
-        sellPricePanel.setBackground(Color.WHITE);
-        sellPricePanel.setLayout(new GridLayout(2, 2));
-        sellPricePanel.setBorder(new LineBorder(Color.BLACK));
-        sellPricePanel.setBounds(getWidth()/2 -100, getHeight()*4/11 - h/2, 200, 60);
-
-        JLabel sellPriceTitle = new JLabel("Sell : $");
-        sellPricePanel.add(sellPriceTitle);
-        sellPriceTitle.setFont(font);
-
-        sellPriceLabel = new JLabel(String.valueOf(baseCost));
-        sellPricePanel.add(sellPriceLabel);
-        sellPriceLabel.setFont(font);
-
-        JButton sellDown = new JButton("-");
-        sellPricePanel.add(sellDown);
-        sellDown.setFont(font);
-        sellDown.setBackground(Color.YELLOW);
-        sellDown.setAction(new DecreaseSellPriceAction());
-
-        JButton sellUp = new JButton("+");
-        sellPricePanel.add(sellUp);
-        sellUp.setFont(font);
-        sellUp.setBackground(Color.GREEN);
-        sellUp.setAction(new IncreaseSellPriceAction());
-
-        plusButton.put("sellPrice", sellUp);
-        minusButton.put("sellPrice", sellDown);
-
-        // Sum cost panel
-        JPanel sumCostPanel = new JPanel();
-        this.add(sumCostPanel);
-        sumCostPanel.setLayout(new GridLayout(1, 2));
-        sumCostPanel.setBackground(Color.WHITE);
-        sumCostPanel.setBorder(new LineBorder(Color.BLACK));
-        sumCostPanel.setBounds(getWidth()/2 -100, getHeight()/2 - 30, 400, 30);
-
-        JLabel sumCostTitle = new JLabel("Sum cost : $");
-        sumCostPanel.add(sumCostTitle);
-        sumCostTitle.setFont(font);
-
-        sumCostLabel = new JLabel("0");
-        sumCostPanel.add(sumCostLabel);
-        sumCostLabel.setFont(font);
-
-        amountDown.setAction(new DecreaseSellAmountAction());
-        amountUp.setAction(new IncreaseSellAmountAction());
-    }
-
-    public HashMap<String, Integer> getIngredientsAmount(){
-        return ingredientsAmount;
-    }
-
-    public HashMap<String, JButton> getMinusButton() {
-        return minusButton;
-    }
-
-    public HashMap<String, JButton> getPlusButton() {
-        return plusButton;
-    }
-
-    public int getSellPrice(){
-        return Integer.parseInt(sellPriceLabel.getText());
-    }
-
-    public int getSellAmount(){
-        return Integer.parseInt(sellAmountLabel.getText());
-    }
-
-    public JButton getStartButton() {
-        return startButton;
-    }
-
-    public JTextArea getShopMonitor(){
-        return shopMonitor;
-    }
-
-    public JLabel getMoneyLabel() {
-        return moneyLabel;
-    }
-
-    private class IncreaseAmountAction extends AbstractAction{
-
-        JLabel label;
-        public IncreaseAmountAction(JLabel label){
-            this.label = label;
-            putValue(NAME, "+");
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            String text = label.getText();
-            int amount = Integer.parseInt(text);
-            label.setText(String.valueOf(++amount));
-            ingredientsAmount.put(label.getName(), amount);
-            int index = Arrays.stream(ingredientName).toList().indexOf(label.getName());
-            int cost = Integer.parseInt(costLabel.getText()) + ingredientCost[index];
-            costLabel.setText(String.valueOf(cost));
-
-            int sumCost = cost * getSellAmount();
-            int money = Integer.parseInt(moneyLabel.getText());
-
-            sumCostLabel.setText(String.valueOf(sumCost));
-
-            if (sumCost > money){
-                sumCostLabel.setForeground(Color.RED);
-                moneyLabel.setForeground(Color.RED);
-            } else {
-                sumCostLabel.setForeground(Color.BLACK);
-                moneyLabel.setForeground(Color.BLACK);
-            }
-        }
-    }
-
-    private class DecreaseAmountAction extends AbstractAction{
-
-        JLabel label;
-        public DecreaseAmountAction(JLabel label){
-            this.label = label;
-            putValue(NAME, "-");
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            String text = label.getText();
-            int amount = Integer.parseInt(text);
-            if (--amount >= 1){
-                label.setText(String.valueOf(amount));
-                ingredientsAmount.put(label.getName(), amount);
-
-                int index = Arrays.stream(ingredientName).toList().indexOf(label.getName());
-                int cost = Integer.parseInt(costLabel.getText()) - ingredientCost[index];
-                costLabel.setText(String.valueOf(cost));
-
-                int sumCost = cost * getSellAmount();
-                int money = Integer.parseInt(moneyLabel.getText());
-
-                sumCostLabel.setText(String.valueOf(sumCost));
-
-                if (sumCost > money){
-                    sumCostLabel.setForeground(Color.RED);
-                    moneyLabel.setForeground(Color.RED);
-                } else {
-                    sumCostLabel.setForeground(Color.BLACK);
-                    moneyLabel.setForeground(Color.BLACK);
-                }
-            }
-        }
-    }
-
-    public class IncreaseSellAmountAction extends AbstractAction{
-        public IncreaseSellAmountAction(){
-            putValue(NAME , "+");
-            updateSumCost();
-        }
-
-        public void updateSumCost(){
-            int sellAmount = Integer.parseInt(sellAmountLabel.getText());
-            int sellCost = Integer.parseInt(costLabel.getText());
-            int sumCost = sellAmount * sellCost;
-            int money = Integer.parseInt(moneyLabel.getText());
-
-            sumCostLabel.setText(String.valueOf(sumCost));
-
-            if (sumCost > money){
-                sumCostLabel.setForeground(Color.RED);
-                moneyLabel.setForeground(Color.RED);
-            } else {
-                sumCostLabel.setForeground(Color.BLACK);
-                moneyLabel.setForeground(Color.BLACK);
-            }
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            int sellAmount = Integer.parseInt(sellAmountLabel.getText());
-            sellAmountLabel.setText(String.valueOf(++sellAmount));
-            updateSumCost();
-        }
+        // Set up some fields and set action for start button
+        super(new Town("MFU village"));
+        frame = new ChaohmFrame();
+        monitor = frame.getShopMonitor();
+        moneyLabel = frame.getMoneyLabel();
+        startButton = frame.getStartButton();
+        startButton.setAction(new StartAction());
     }
 
     /**
-     * The action for check decrease sell amount button is clicked
+     * The action listener for start button click
+     * We create this class in here because we need to run this class that implemented ActionListener
      */
-    public class DecreaseSellAmountAction extends AbstractAction{
-        public DecreaseSellAmountAction(){
-            putValue(NAME, "-");
-            updateSumCost();
-        }
-
-        /**
-         * The method for check update sum cost if sell amount is decreased
-         */
-        public void updateSumCost(){
-            int sellAmount = Integer.parseInt(sellAmountLabel.getText());
-            int sellCost = Integer.parseInt(costLabel.getText());
-            int sumCost = sellCost * sellAmount;
-            int money = Integer.parseInt(moneyLabel.getText());
-
-            sumCostLabel.setText(String.valueOf(sumCost));
-
-            // Change sum
-            if (sumCost > money){
-                sumCostLabel.setForeground(Color.RED);
-                moneyLabel.setForeground(Color.RED);
-            } else {
-                sumCostLabel.setForeground(Color.BLACK);
-                moneyLabel.setForeground(Color.BLACK);
-            }
+    private class StartAction extends AbstractAction{
+        public StartAction(){
+            putValue(NAME, "Start");
         }
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            int sellAmount = Integer.parseInt(sellAmountLabel.getText());
-            if (--sellAmount >= 1){
-                sellAmountLabel.setText(String.valueOf(sellAmount));
-                updateSumCost();
-            }
-        }
-    }
+            // Start food mixer from number of the ingredients from the frame
+            HashMap<String, Integer> amount = frame.getIngredientsAmount(); // Get hash map of ingredient
+            // Mix ingredients
+            FoodMixer mixer = new FoodMixer();
+            mixer.add(new Sugar(), amount.get("sugar"));
+            mixer.add(new Salt(), amount.get("salt"));
+            mixer.add(new Chaohm(), amount.get("chaohm"));
+            mixer.add(new Oil(), amount.get("oil"));
 
-    /**
-     * The action for increase sell price action
-     * Which can interact with sell price label and its value
-     */
-    private class IncreaseSellPriceAction extends AbstractAction{
+            // Beware that sum cost of the foods have to less than the shop' money
+            int sellAmount = frame.getSellAmount();
+            int sellPrice = frame.getSellPrice();
+            int sumCost = sellAmount * mixer.getCost();
 
-        public IncreaseSellPriceAction(){
-            putValue(NAME, "+");
-        }
+            try{
+                // Try to use money to buy the ingredients about the sum cost
+                // IIf money is not enough NotEnough Money Exception will be thrown
+                useMoney(sumCost);
+                moneyLabel.setText(String.valueOf(money));
 
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            int value = Integer.parseInt(sellPriceLabel.getText());
-            sellPriceLabel.setText(String.valueOf(++value));
-        }
-    }
+                // Disable all button and start the program
+                startButton.setEnabled(false);
+                startButton.setBackground(Color.YELLOW);
+                frame.getPlusButton().values().forEach((b) -> b.setEnabled(false));
+                frame.getMinusButton().values().forEach((b) -> b.setEnabled(false));
 
-    /**
-     * The action for decrease sell price action
-     * Which can interact with sell price label and its value
-     */
-    private class DecreaseSellPriceAction extends AbstractAction{
-        public DecreaseSellPriceAction(){
-            putValue(NAME, "-");
-        }
+                start(mixer.makesFoods(sellAmount, sellPrice));
 
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            // Get current value of the label and increase it by 1
-            int value = Integer.parseInt(sellPriceLabel.getText());
-            if (--value >= 1){
-                sellPriceLabel.setText(String.valueOf(value));
+            } catch (NotEnoughMoneyException ex){
+                // Show exception in the monitor
+                monitor.setText(
+                        "Your money is not enough for make foods" +
+                        "\nPlease try too manage your ingredients and amount again!"
+                );
             }
         }
     }
 
 
     /**
-     * The overriding method to be paint image of ingredients and shop
-     * @param g the specified Graphics window
+     * The start point of the program
+     * @param foods that will be served to persons in the town owner
      */
     @Override
-    public void paint(Graphics g){
-        super.paint(g);
-        ImageIcon oil = new ImageIcon("oil.png");
-        ImageIcon broccoli = new ImageIcon("durva.png");
-        ImageIcon salt = new ImageIcon("salt.png");
-        ImageIcon sugar = new ImageIcon("sugar.png");
-        ImageIcon monitor = new ImageIcon("shop.png");
+    public void start(Stack<Food> foods){
+        // Set up foods, clear monitor, and re populations before going
+        this.foods = foods;
+        monitor.setText("");
+        town.rePopulations();
 
-        // Paint image for any bounds
-        int h = getHeight()/5 -30;
-        g.drawImage(oil.getImage(), 50, getHeight()/6 - h/2, h, h, null);
-        g.drawImage(broccoli.getImage(), 50, getHeight()*2/6 -h/2, h, h, null);
-        g.drawImage(salt.getImage(), 50, getHeight()*3/6 -h/2, h, h, null);
-        g.drawImage(sugar.getImage(), 50, getHeight()*4/6 -h/2,h, h, null);
+        // Start food shop until no people or foods left
+        timer = new Timer(200, this);
+        timer.start();
+    }
 
-        g.drawImage(monitor.getImage(), getWidth()/2 + 100, getHeight()/6- h/2, 200, 200, null);
+    /**
+     * The main action to be run repeatedly when start button of the gui is clicked
+     * @param e the event to be processed
+     */
+    @Override
+    public void actionPerformed(ActionEvent e) {
+
+        // serve new food when foods stack is not empty and town is crowed
+        if (!foods.isEmpty() && town.isCrowed()){
+            // Get a Customer who is a person from the town then let he or she eats the food from the foods stack
+            Customer customer = town.getPerson();
+            customer.eat(foods.pop());
+
+            // Count customer is feeling and increase or decrease populations with current customer's feeling
+            switch (customer.getFeeling()){
+                case HAPPY, GOOD -> {
+                    town.increasePopulation();
+                    good++;
+                }
+                case INDIFFERENT -> normal ++;
+                case BAD, TERRIBLE -> {
+                    town.decreasePopulation();
+                    bad ++;
+                }
+            }
+
+            // Monitor current customer who is eating about name, feeling, and money paying
+            monitor.append(customer.getName() + " is eating....\n");
+            monitor.append(customer.getName() +
+                    " is feel " + customer.getFeeling() +
+                    " he/she pay + $" + customer.pay(this) +
+                    "\n\n"
+            );
+
+        // no foods left or no person in the town
+        } else {
+            // Show report of our shop for today and enable all button
+            showReports(); // Reports
+            startButton.setBackground(Color.GREEN);
+            startButton.setEnabled(true);
+            frame.getPlusButton().values().forEach((b) -> b.setEnabled(true));
+            frame.getMinusButton().values().forEach((b) -> b.setEnabled(true));
+
+            // Stop the action after that
+            timer.stop();
+        }
+    }
+
+    /**
+     * The method for show the shop's report when serve all food or no people left in the town
+     * This includes : foods left, person left, feelings of customers, and income.
+     */
+    public void showReports(){
+        // Show the reports of the shop
+        monitor.append("\nThere are " + getFoodLeft().size() + " dishes\nof chaohm omelette left.");
+        monitor.append("\nIn " + town.getName());
+        monitor.append("\n" + (!town.isCrowed() ? "Every people have eaten.": "There is some people is hungry!"));
+        monitor.append("\n\nCustomer's feeling for today.\n");
+        monitor.append("\nCustomer feel positive : " + good);
+        monitor.append("\nCustomer fell normal   : " + normal);
+        monitor.append("\nCustomer fell negative : " + bad);
+
+        // Check money and set new amount to money label
+        int oldMoney = Integer.parseInt(moneyLabel.getText());
+        int different = money - oldMoney;
+        moneyLabel.setText(String.valueOf(money));
+        monitor.append("\n\nYou give $" + different + " this turn.");
+    }
+
+
+    /**
+     * Main fo the gui program that will be displayed
+     */
+    public static void main(String[] args) {
+        ChaohmGUI ui = new ChaohmGUI();
+        EventQueue.invokeLater(() -> ui.frame.setVisible(true));
     }
 }
