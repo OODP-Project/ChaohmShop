@@ -1,7 +1,4 @@
 # ChaohmShop
-<<<<<<< HEAD
-[UMl Link](https://viewer.diagrams.net/js/viewer-static.min.js)
-=======
 this is a project from OODP subject of the MFU
 
 ## Description
@@ -12,5 +9,4 @@ if your customer is feel bad the persons in the town will be decrease and if cus
 the town will be increase persons too. Happy!
 
 ## UML ClassDiagram
-![UML diagram](UML.png)
->>>>>>> 6688588 (Yeah!!)
+![UML diagram](pictures/UML.png)

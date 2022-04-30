@@ -31,7 +31,7 @@ public class ChaohmFrame extends JFrame {
     public ChaohmFrame(){
         // Initialize important details of the frame
         setTitle("ChaohmShop");
-        ImageIcon icon = new ImageIcon("omelette.png");
+        ImageIcon icon = new ImageIcon("pictures/omelette.png");
         setIconImage(icon.getImage());
         setDefaultCloseOperation(EXIT_ON_CLOSE); // Exit when close window
         setSize(800, 500);
@@ -439,7 +439,6 @@ public class ChaohmFrame extends JFrame {
         }
     }
 
-
     /**
      * The overriding method to be paint image of ingredients and shop
      * @param g the specified Graphics window
@@ -447,11 +446,11 @@ public class ChaohmFrame extends JFrame {
     @Override
     public void paint(Graphics g){
         super.paint(g);
-        ImageIcon oil = new ImageIcon("oil.png");
-        ImageIcon broccoli = new ImageIcon("durva.png");
-        ImageIcon salt = new ImageIcon("salt.png");
-        ImageIcon sugar = new ImageIcon("sugar.png");
-        ImageIcon monitor = new ImageIcon("shop.png");
+        ImageIcon oil = new ImageIcon("pictures/oil.png");
+        ImageIcon broccoli = new ImageIcon("pictures/durva.png");
+        ImageIcon salt = new ImageIcon("pictures/salt.png");
+        ImageIcon sugar = new ImageIcon("pictures/sugar.png");
+        ImageIcon monitor = new ImageIcon("pictures/shop.png");
 
         // Paint image for any bounds
         int h = getHeight()/5 -30;

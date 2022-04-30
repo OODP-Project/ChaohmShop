@@ -26,7 +26,7 @@ public class Town {
 
         // Get all person's names in the file and create instances with that person's name
         // With this person will be Kid, Adult, or Elder from random age
-        try (BufferedReader reader = new BufferedReader(new FileReader("persons.dat"))){
+        try (BufferedReader reader = new BufferedReader(new FileReader("data/persons.dat"))){
             reader.lines().forEach( (line) -> {
                 Person person;
                 int age = (int) (Math.random() * 70 + 1);
