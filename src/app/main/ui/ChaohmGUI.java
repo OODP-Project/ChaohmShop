@@ -62,14 +62,14 @@ public class ChaohmGUI extends ChaohmShop implements ActionListener {
             mixer.add(new Chaohm(), amount.get("chaohm"));
             mixer.add(new Oil(), amount.get("oil"));
 
-            // Beware that sum cost of the foods have to less than the shop' money
+            // Try to buy food from the sumCost and just start game if it doesn't throw exception
             int sellAmount = frame.getSellAmount();
-            int sellPrice = frame.getSellPrice();
+            int sellPrice = frame.getSellCost();
             int sumCost = sellAmount * mixer.getCost();
 
             try{
                 // Try to use money to buy the ingredients about the sum cost
-                // IIf money is not enough NotEnough Money Exception will be thrown
+                // If money is not enough NotEnoughMoneyException will be thrown
                 useMoney(sumCost);
                 moneyLabel.setText(String.valueOf(money));
 
@@ -164,7 +164,7 @@ public class ChaohmGUI extends ChaohmShop implements ActionListener {
         // Show the reports of the shop
         monitor.append("\nThere are " + getFoodLeft().size() + " dishes\nof chaohm omelette left.");
         monitor.append("\nIn " + town.getName());
-        monitor.append("\n" + (!town.isCrowed() ? "Every people have eaten.": "There is some people is hungry!"));
+        monitor.append("\n" + (!town.isCrowed() ? "Every people have eaten.": "There are some people still hungry!"));
         monitor.append("\n\nCustomer's feeling for today.\n");
         monitor.append("\nCustomer feel positive : " + good);
         monitor.append("\nCustomer fell normal   : " + normal);
@@ -175,6 +175,13 @@ public class ChaohmGUI extends ChaohmShop implements ActionListener {
         int different = money - oldMoney;
         moneyLabel.setText(String.valueOf(money));
         monitor.append("\n\nYou give $" + different + " this turn.");
+
+        // If money is lower than current amount in the label change money label and sum cost label in to red
+        int currentAmount = frame.getSellAmount();
+        int costPerUnit = frame.getSellCost();
+        if (currentAmount * costPerUnit > money){
+            moneyLabel.setForeground(Color.RED);
+        }
     }
 
 

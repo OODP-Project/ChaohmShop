@@ -247,6 +247,9 @@ public class ChaohmFrame extends JFrame {
     public int getSellAmount(){
         return Integer.parseInt(sellAmountLabel.getText());
     }
+    public int getSellCost() {
+        return Integer.parseInt(costLabel.getText());
+    }
 
     public JButton getStartButton() {
         return startButton;

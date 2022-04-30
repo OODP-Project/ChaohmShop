@@ -101,7 +101,4 @@ public class Town {
         return !tempPopulations.isEmpty();
     }
 
-    public int getCrowded() {
-        return tempPopulations.size();
-    }
 }

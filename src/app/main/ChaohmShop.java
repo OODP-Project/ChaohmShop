@@ -24,10 +24,6 @@ public class ChaohmShop {
         return foods;
     }
 
-    public int getCrowded(){
-        return town.getCrowded();
-    }
-
     public void start(Stack<Food> foods)  {
         // Set foods stack to the fields and renew populations
         this.foods = foods;
@@ -58,7 +54,7 @@ public class ChaohmShop {
      */
     public void showReports(){
         System.out.println("There is " + getFoodLeft().size() + "left");
-        if (getCrowded() > 0){
+        if (town.isCrowed()){
             System.out.println("There is some people in the town is hungry!");
         } else {
             System.out.println("There is no people in the town now!");
